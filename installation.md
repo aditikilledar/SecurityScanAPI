@@ -7,3 +7,7 @@ Questions:
 
 2. "Concurrency: Process ≥ 3 files in parallel."
     Does the problem statement mean concurrency or parallelism??
+
+3. "Error Handling: Retry failed GitHub API calls (2 attempts)."
+    Total number of attempts should be 3 or 2?
+    I have implemented as 1 attempt and 2 reattempt.
