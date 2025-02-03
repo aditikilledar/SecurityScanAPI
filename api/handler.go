@@ -2,13 +2,20 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"sync"
+	"time"
 )
 
 type ScanRequest struct {
 	Repo      string   `json:"repo"`
 	FileNames []string `json:"files"`
+}
+
+type ScanResponse struct {
+	Message   string    `json:"message"`
+	TimeStamp time.Time `json:"timestamp"`
 }
 
 type QueryRequest struct {
@@ -24,6 +31,7 @@ func ScanHandler(w http.ResponseWriter, r *http.Request) {
 
 	// validate request format
 	if err := json.NewDecoder(r.Body).Decode(&ScanRequest); err != nil {
+		log.Printf("Error parsing request: %v", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
@@ -41,18 +49,30 @@ func ScanHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Printf("Processing scan request - Repo: %s, Files: %v",
+		ScanRequest.Repo,
+		ScanRequest.FileNames)
+
 	// TODO: Q2 scan files concurrently
 	wg := sync.WaitGroup{}
 	for _, fileName := range fileNames {
 		wg.Add(1)
 		go func(fileName string) {
 			defer wg.Done()
-
-			storeFile(repoURL, fileName)
+			processFile(repoURL, fileName)
 		}(fileName)
 	}
 	wg.Wait()
 
+	log.Printf("Scan completed successfully at %v", time.Now())
+	response := ScanResponse{
+		Message:   "Scan completed. Stored files successfully",
+		TimeStamp: time.Now(),
+	}
+
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Scan completed successfully"))
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		log.Printf("Error encoding response: %v", err)
+	}
 }
