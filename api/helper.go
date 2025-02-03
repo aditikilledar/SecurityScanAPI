@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 )
 
 func storeFile(repoURL, fileName string) {
@@ -29,7 +30,8 @@ func storeFile(repoURL, fileName string) {
 
 	defer res.Body.Close()
 
-	body, err := io.ReadAll(res.Body) // Read the body into a byte slice
+	// read the response body
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		log.Default().Printf("Failed to read response body for file %s: %v", fileName, err)
 		return
@@ -51,7 +53,9 @@ func storePayload(fileName string, payload map[string]interface{}) {
 		log.Default().Printf("Failed to marshal payload: %v", err)
 		return
 	}
-	log.Println("STORED", fileName, " IN DB (Fake)", string(payloadBytes)[:100])
+	// TODO: Design Schema for :
+	// source file, scan time and payload
+	log.Println("STORED @", time.Now(), fileName, " IN DB (Fake)", string(payloadBytes)[:100])
 
 	// TODO: Logic to store into database
 	// _, err := db.Exec(SCAN_INSERT_QUERY, fileName, payloadBytes)

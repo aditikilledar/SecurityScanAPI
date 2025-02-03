@@ -6,8 +6,6 @@ import (
 	"sync"
 )
 
-//    "repo": <repo root>,   "files": [<filename1>, <filename2>,…]}
-
 type ScanRequest struct {
 	Repo      string   `json:"repo"`
 	FileNames []string `json:"files"`
