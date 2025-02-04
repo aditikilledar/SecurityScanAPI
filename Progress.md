@@ -2,7 +2,8 @@
 
 TODO:
 - Documentation README explaining the code
-- Return all matched payloads (based on filter severity)
+- \implement query 
+    - Return all matched payloads (based on filter severity)
 - Tests for Core Logic (60%+)
 
 DONE:

@@ -8,21 +8,6 @@ import (
 	"time"
 )
 
-type ScanRequest struct {
-	Repo      string   `json:"repo"`
-	FileNames []string `json:"files"`
-}
-
-type ScanResponse struct {
-	Message   string    `json:"message"`
-	TimeStamp time.Time `json:"timestamp"`
-}
-
-type QueryRequest struct {
-	Filters map[string]string `json:"filters"`
-	// focus on severity status
-}
-
 func ScanHandler(w http.ResponseWriter, r *http.Request) {
 	// Scans JSON files without cloning the git Repo
 
@@ -74,5 +59,33 @@ func ScanHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		log.Printf("Error encoding response: %v", err)
+	}
+}
+
+func QueryHandler(w http.ResponseWriter, r *http.Request) {
+	var QueryReq QueryRequest
+	if err := json.NewDecoder(r.Body).Decode(&QueryReq); err != nil {
+		log.Printf("Error parsing request, invalid request body: %v", err)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("Processing query request: %+v", QueryReq)
+
+	// process the query and return the response
+	vulnerabilities := retrieveFilteredVulnerabilities(QueryReq.Filters)
+
+	if vulnerabilities == nil {
+		http.Error(w, "No vulnerabilities found", http.StatusNotFound)
+		vulnerabilities = []Vulnerability{}
+	}
+
+	log.Printf("Vulnerabilities found in handler: %v", vulnerabilities)
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(vulnerabilities); err != nil {
+		log.Printf("Error encoding response: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 }

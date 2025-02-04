@@ -3,29 +3,26 @@ package main
 import (
 	"log"
 	"net/http"
-
+	"os"
 	"securityscan/api"
 	"securityscan/config"
-
-	_ "github.com/mattn/go-sqlite3" // Import go-sqlite3 library, blank identifier to register the driver
 )
 
 func main() {
+	log.SetOutput(os.Stdout)
 
-	config := config.LoadConfig()
+	cfg := config.LoadConfig()
 
 	// init the db
-	if err := api.InitializeDB(config.DatabasePath); err != nil {
-		log.Fatalf("Error initializing database: %v", err)
-	}
+	cfg.InitDatabaseConfig()
 
-	defer api.CloseDB()
+	// defer config.CloseDB()
 
 	// register endpoints
 	// TODO: Check if i need to return if endpoint method is not POST
 
 	http.HandleFunc("/scan", func(w http.ResponseWriter, r *http.Request) {
-
+		w.Header().Set("Content-Type", "application/json")
 		if r.Method == http.MethodPost {
 			api.ScanHandler(w, r)
 		} else {
@@ -45,7 +42,10 @@ func main() {
 	})
 
 	// manage server
-	server := &http.Server{}
+	server := &http.Server{
+		Addr:    "localhost:8080",
+		Handler: nil,
+	}
 
 	log.Println("Server started on port 8080")
 

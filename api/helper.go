@@ -10,20 +10,6 @@ import (
 	"time"
 )
 
-type Vulnerability struct {
-	ID             string   `json:"id"`
-	Severity       string   `json:"severity"`
-	CVSS           float64  `json:"cvss"`
-	Status         string   `json:"status"`
-	PackageName    string   `json:"package_name"`
-	CurrentVersion string   `json:"current_version"`
-	FixedVersion   string   `json:"fixed_version"`
-	Description    string   `json:"description"`
-	PublishedDate  string   `json:"published_date"`
-	Link           string   `json:"link"`
-	RiskFactors    []string `json:"risk_factors"`
-}
-
 func processFile(repoURL, fileName string) {
 	// scans the repo and stores the file in the database
 	rawFileURL := strings.Replace(repoURL, "github.com", "raw.githubusercontent.com", 1)
@@ -158,4 +144,92 @@ func storeVulnerability(fileName string, vulnerability Vulnerability) {
 	if err != nil {
 		log.Default().Printf("Failed to insert vulnerability into database: %v", err)
 	}
+}
+
+func getFilteredPayloadsBySeverity(severity string) ([]Payload, error) {
+	db, err := sql.Open("sqlite3", "./scans.db")
+	if err != nil {
+		log.Printf("Error opening database: %v", err)
+		return nil, err
+	}
+	defer db.Close()
+
+	FILTER_SQL_STMT := `SELECT id, severity, cvss, status, package_name, current_version, fixed_version, description, published_date, link, risk_factors, source_file, time_scanned FROM payloads 
+	WHERE severity = ? 
+	AND severity != ''`
+
+	rows, err := db.Query(FILTER_SQL_STMT, severity)
+	if err != nil {
+		log.Printf("Error querying the database: %v", err)
+		return nil, err
+	}
+
+	var payloads []Payload
+	for rows.Next() {
+		var payload Payload
+		var risk_factors string
+		if err := rows.Scan(
+			&payload.ID,
+			&payload.Severity,
+			&payload.CVSS,
+			&payload.Status,
+			&payload.PackageName,
+			&payload.CurrentVersion,
+			&payload.FixedVersion,
+			&payload.Description,
+			&payload.PublishedDate,
+			&payload.Link,
+			&risk_factors,
+			&payload.SourceFile,
+			&payload.TimeScanned,
+		); err != nil {
+			log.Printf("Error scanning row: %v", err)
+			return nil, err
+		}
+
+		payload.RiskFactors = parseRiskFactors(risk_factors)
+		log.Printf("Retreieved payload >>> %v", payload)
+		payloads = append(payloads, payload)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Printf("Error iterating over rows: %v", err)
+		return nil, err
+	}
+
+	return payloads, nil
+}
+
+func parseRiskFactors(riskFactors string) []string {
+	return strings.Split(riskFactors, ",")
+}
+
+func retrieveFilteredVulnerabilities(Filters map[string]string) []Vulnerability {
+	// takes a set of filters and returns the filtered payloads as an sql rows pointer
+
+	// currently handles only severity filter
+	// TODO: Handle other filters
+	severity := Filters["severity"]
+	log.Printf("Filtering query request for severity: %v", severity)
+
+	payloads, err := getFilteredPayloadsBySeverity(severity)
+
+	if err != nil {
+		log.Printf("Error retrieving filtered payloads: %v", err)
+	}
+
+	log.Printf("Retrieved filtered payloads: %v", len(payloads))
+
+	// convert payloads to vulnerabilities
+	var vulnerabilities []Vulnerability
+
+	for _, payload := range payloads {
+		if payload.Severity == "" {
+			continue
+		}
+		log.Printf("Appending vul: %v", payload.Vulnerability)
+		vulnerabilities = append(vulnerabilities, payload.Vulnerability)
+	}
+
+	return vulnerabilities
 }
