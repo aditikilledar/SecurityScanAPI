@@ -34,20 +34,21 @@ func (c *Config) InitDatabaseConfig() {
 	defer db.Close()
 
 	createTableSQL := `CREATE TABLE IF NOT EXISTS payloads (
-		id TEXT PRIMARY KEY,
-		severity TEXT NOT NULL,
-		cvss REAL NOT NULL,
-		status TEXT NOT NULL,
-		package_name TEXT NOT NULL,
-		current_version TEXT NOT NULL,
-		fixed_version TEXT NOT NULL,
-		description TEXT NOT NULL,
-		published_date TEXT NOT NULL,
-		link TEXT NOT NULL,
-		risk_factors TEXT NOT NULL,
-		source_file TEXT NOT NULL,
-		time_scanned DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-	);`
+        id TEXT NOT NULL,
+        severity TEXT NOT NULL,
+        cvss REAL NOT NULL,
+        status TEXT NOT NULL,
+        package_name TEXT NOT NULL,
+        current_version TEXT NOT NULL,
+        fixed_version TEXT NOT NULL,
+        description TEXT NOT NULL,
+        published_date TEXT NOT NULL,
+        link TEXT NOT NULL,
+        risk_factors TEXT NOT NULL,
+        source_file TEXT NOT NULL,
+        time_scanned DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id, source_file)
+    );`
 
 	_, err = db.Exec(createTableSQL)
 	if err != nil {

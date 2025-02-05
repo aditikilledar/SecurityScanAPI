@@ -1,18 +1,22 @@
 # Progress Tracker
 
 TODO:
-- Documentation README explaining the code
-- \implement query 
-    - Return all matched payloads (based on filter severity)
-- Tests for Core Logic (60%+)
+- Check Edge cases
+- Tests for Core Logic (60%+) + Document how to run it
+-   how to see if it's 60% ?
+-   test if the correct result is returned for a sample file?
 
 DONE:
 - Server startup
+- Documentation README explaining the code & how to run it
 - Modules
+- DockerFile test if it works
 - PARSE INDIVIDUAL PAYLOADS AND ADD TO DB
 - ADD all fields to DB
 - Connect to DB
 - Store EACH payload in the file one by one with metadata
+- \implement query 
+    - Return all matched payloads (based on filter severity)
 
 CAN DO (Future)
 - store more metadata like vulnerabilities etc
@@ -28,3 +32,5 @@ Random Questions / Doubts:
 3. "Error Handling: Retry failed GitHub API calls (2 attempts)."
     Total number of attempts should be 3 or 2?
     I have implemented as 1 attempt and 2 reattempt.
+
+4. I am assuming that each file doesn't contain duplicates of CVE

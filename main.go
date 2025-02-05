@@ -20,8 +20,10 @@ func main() {
 
 	// register endpoints
 	// TODO: Check if i need to return if endpoint method is not POST
+	log.Println("Registering endpoints")
 
 	http.HandleFunc("/scan", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("Request received at /scan")
 		w.Header().Set("Content-Type", "application/json")
 		if r.Method == http.MethodPost {
 			api.ScanHandler(w, r)
@@ -32,7 +34,7 @@ func main() {
 	})
 
 	http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
-
+		log.Println("Request received at /query")
 		if r.Method == http.MethodPost {
 			api.QueryHandler(w, r)
 		} else {
@@ -43,7 +45,7 @@ func main() {
 
 	// manage server
 	server := &http.Server{
-		Addr:    "localhost:8080",
+		Addr:    "0.0.0.0:8080",
 		Handler: nil,
 	}
 

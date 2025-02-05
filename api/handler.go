@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 )
@@ -23,6 +24,15 @@ func ScanHandler(w http.ResponseWriter, r *http.Request) {
 
 	repoURL := ScanRequest.Repo
 	fileNames := ScanRequest.FileNames
+
+	// validate if fileNames are json files
+	for _, fileName := range fileNames {
+		if !strings.HasSuffix(fileName, ".json") {
+			http.Error(w, "Invalid file format. Only JSON files are supported at the moment.", http.StatusBadRequest)
+			return
+
+		}
+	}
 
 	// make an HTTP GET request to the repo
 	res, err := http.Get(repoURL)

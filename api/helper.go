@@ -3,6 +3,7 @@ package api
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -146,7 +147,34 @@ func storeVulnerability(fileName string, vulnerability Vulnerability) {
 	}
 }
 
-func getFilteredPayloadsBySeverity(severity string) ([]Payload, error) {
+func retrieveFilteredVulnerabilities(Filters map[string]string) []Vulnerability {
+	// takes a set of filters and returns the filtered payloads as an sql rows pointer
+
+	// currently handles only severity filter
+	// TODO: Handle other filters
+	// severity := Filters["severity"]
+	log.Printf("Filtering query request for filters: %v", Filters)
+
+	payloads, err := getFilteredPayloads(Filters)
+
+	if err != nil {
+		log.Printf("Error retrieving filtered payloads: %v", err)
+	}
+
+	log.Printf("Retrieved filtered payloads: %v", len(payloads))
+
+	// convert payloads to vulnerabilities
+	var vulnerabilities []Vulnerability
+
+	for _, payload := range payloads {
+		log.Printf("Appending vul: %v", payload.Vulnerability)
+		vulnerabilities = append(vulnerabilities, payload.Vulnerability)
+	}
+
+	return vulnerabilities
+}
+
+func getFilteredPayloads(filters map[string]string) ([]Payload, error) {
 	db, err := sql.Open("sqlite3", "./scans.db")
 	if err != nil {
 		log.Printf("Error opening database: %v", err)
@@ -154,15 +182,41 @@ func getFilteredPayloadsBySeverity(severity string) ([]Payload, error) {
 	}
 	defer db.Close()
 
-	FILTER_SQL_STMT := `SELECT id, severity, cvss, status, package_name, current_version, fixed_version, description, published_date, link, risk_factors, source_file, time_scanned FROM payloads 
-	WHERE severity = ? 
-	AND severity != ''`
+	var rows *sql.Rows
 
-	rows, err := db.Query(FILTER_SQL_STMT, severity)
-	if err != nil {
-		log.Printf("Error querying the database: %v", err)
-		return nil, err
+	// if Filters is not empty, add the filter to the query
+	if len(filters) > 0 {
+
+		BASE_STMT := `SELECT id, severity, cvss, status, package_name, current_version, fixed_version, description, published_date, link, risk_factors, source_file, time_scanned FROM payloads 
+		WHERE `
+		var conditions []string
+		var args []interface{}
+
+		for key, value := range filters {
+			conditions = append(conditions, fmt.Sprintf("%s = ?", key))
+			args = append(args, value)
+		}
+
+		// Join the conditions with "AND"
+		FILTER_SQL_STMT := BASE_STMT + strings.Join(conditions, " AND ")
+		log.Printf("Filter SQL statement: %v", FILTER_SQL_STMT)
+
+		rows, err = db.Query(FILTER_SQL_STMT, args...)
+		if err != nil {
+			log.Printf("Error querying the database: %v", err)
+			return nil, err
+		}
+	} else {
+		NO_FILTER_SQL_STMT := `SELECT id, severity, cvss, status, package_name, current_version, fixed_version, description, published_date, link, risk_factors, source_file, time_scanned FROM payloads`
+		log.Printf("No filters provided. Querying all payloads: %s", NO_FILTER_SQL_STMT)
+		rows, err = db.Query(NO_FILTER_SQL_STMT)
+		if err != nil {
+			log.Printf("Error querying the database: %v", err)
+			return nil, err
+		}
+
 	}
+	defer rows.Close()
 
 	var payloads []Payload
 	for rows.Next() {
@@ -188,7 +242,7 @@ func getFilteredPayloadsBySeverity(severity string) ([]Payload, error) {
 		}
 
 		payload.RiskFactors = parseRiskFactors(risk_factors)
-		log.Printf("Retreieved payload >>> %v", payload)
+		log.Printf("Retreieved payload from database >> %v", payload)
 		payloads = append(payloads, payload)
 	}
 
@@ -202,34 +256,4 @@ func getFilteredPayloadsBySeverity(severity string) ([]Payload, error) {
 
 func parseRiskFactors(riskFactors string) []string {
 	return strings.Split(riskFactors, ",")
-}
-
-func retrieveFilteredVulnerabilities(Filters map[string]string) []Vulnerability {
-	// takes a set of filters and returns the filtered payloads as an sql rows pointer
-
-	// currently handles only severity filter
-	// TODO: Handle other filters
-	severity := Filters["severity"]
-	log.Printf("Filtering query request for severity: %v", severity)
-
-	payloads, err := getFilteredPayloadsBySeverity(severity)
-
-	if err != nil {
-		log.Printf("Error retrieving filtered payloads: %v", err)
-	}
-
-	log.Printf("Retrieved filtered payloads: %v", len(payloads))
-
-	// convert payloads to vulnerabilities
-	var vulnerabilities []Vulnerability
-
-	for _, payload := range payloads {
-		if payload.Severity == "" {
-			continue
-		}
-		log.Printf("Appending vul: %v", payload.Vulnerability)
-		vulnerabilities = append(vulnerabilities, payload.Vulnerability)
-	}
-
-	return vulnerabilities
 }
