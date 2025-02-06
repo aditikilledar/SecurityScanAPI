@@ -2,11 +2,11 @@
 
 ## Overview
 
-This is my submission for the take-home test. 
-Based on the requirements provided by the people who gave me this challenge.
-The Security Scan API is a web service that allows users to query and retrieve information about security vulnerabilities, that are already stored in json files in the given repository.
+This is my submission for the take-home challenge. 
 
-The API provides endpoints to filter and retrieve vulnerability data based on specific criteria, such as severity (the focus for this test). 
+The Security Scan API is a web service that allows users to query and retrieve information about security vulnerabilities, that are already stored in JSON files in the given repository.
+
+The API provides endpoints to filter and retrieve vulnerability data based on specific criteria, such as severity (the focus of this test). 
 
 ## Table of Contents  
 - [Overview](#overview)  
