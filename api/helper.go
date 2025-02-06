@@ -7,9 +7,12 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
+
+// var DB_FILE = "./scans.db"
 
 func processFile(repoURL, fileName string) {
 	// scans the repo and stores the file in the database
@@ -43,7 +46,7 @@ func processFile(repoURL, fileName string) {
 		return
 	}
 
-	log.Printf("Response body for file %s: %s", fileName, string(body)[:100])
+	// log.Printf("Response body for file %s: %s", fileName, string(body)[:100])
 
 	var filePayloads []map[string]interface{}
 	if err := json.Unmarshal(body, &filePayloads); err != nil {
@@ -53,7 +56,7 @@ func processFile(repoURL, fileName string) {
 
 	// store the file in the database
 	for _, payload := range filePayloads {
-		log.Printf("Storing payload (JSON): %v", payload)
+		log.Printf("Storing payload (JSON)")
 		storePayload(fileName, payload)
 	}
 }
@@ -65,7 +68,7 @@ func storePayload(fileName string, payload map[string]interface{}) {
 		log.Default().Printf("Failed to extract scan_results from payload")
 		return
 	}
-	log.Printf("\nProcessing scan results: %+v\n", scanResults)
+	// log.Printf("\nProcessing scan results: %+v\n", scanResults)
 
 	// extract Vulnerabilities from the scanResults
 	vulnerabilities, ok := scanResults["vulnerabilities"].([]interface{})
@@ -96,7 +99,7 @@ func storePayload(fileName string, payload map[string]interface{}) {
 		}
 
 		// Log or process the vulnerability
-		log.Printf("Processing vulnerability: %+v", vulnerability)
+		// log.Printf("Processing vulnerability: %+v", vulnerability)
 
 		// Store the vulnerability in the database
 		storeVulnerability(fileName, vulnerability)
@@ -105,7 +108,9 @@ func storePayload(fileName string, payload map[string]interface{}) {
 
 func storeVulnerability(fileName string, vulnerability Vulnerability) {
 	// Store the data in the database
-	db, err := sql.Open("sqlite3", "./scans.db")
+	var DB_FILE = os.Getenv("DATABASE_PATH")
+	db, err := sql.Open("sqlite3", DB_FILE)
+	// log.Printf("Opening db to store vuln, %s", DB_FILE)
 	if err != nil {
 		log.Default().Printf("Failed to open database: %v", err)
 		return
@@ -167,7 +172,7 @@ func retrieveFilteredVulnerabilities(Filters map[string]string) []Vulnerability 
 	var vulnerabilities []Vulnerability
 
 	for _, payload := range payloads {
-		log.Printf("Appending vul: %v", payload.Vulnerability)
+		// log.Printf("Appending vul: %v", payload.Vulnerability)
 		vulnerabilities = append(vulnerabilities, payload.Vulnerability)
 	}
 
@@ -175,7 +180,8 @@ func retrieveFilteredVulnerabilities(Filters map[string]string) []Vulnerability 
 }
 
 func getFilteredPayloads(filters map[string]string) ([]Payload, error) {
-	db, err := sql.Open("sqlite3", "./scans.db")
+	var DB_FILE = os.Getenv("DATABASE_PATH")
+	db, err := sql.Open("sqlite3", DB_FILE)
 	if err != nil {
 		log.Printf("Error opening database: %v", err)
 		return nil, err
@@ -242,7 +248,7 @@ func getFilteredPayloads(filters map[string]string) ([]Payload, error) {
 		}
 
 		payload.RiskFactors = parseRiskFactors(risk_factors)
-		log.Printf("Retreieved payload from database >> %v", payload)
+		log.Print("Retreieved payload from database")
 		payloads = append(payloads, payload)
 	}
 

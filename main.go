@@ -11,12 +11,12 @@ import (
 func main() {
 	log.SetOutput(os.Stdout)
 
-	cfg := config.LoadConfig()
+	cfg := config.LoadConfig("main")
 
 	// init the db
-	cfg.InitDatabaseConfig()
+	cfg.InitDatabaseConfig("main")
 
-	// defer config.CloseDB()
+	defer config.CloseDB()
 
 	// register endpoints
 	// TODO: Check if i need to return if endpoint method is not POST

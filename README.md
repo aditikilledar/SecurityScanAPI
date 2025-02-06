@@ -2,8 +2,30 @@
 
 ## Overview
 
-This is my submission for the take-home test. Authored by me, Aditi Killedar in February 2025.
-The Security Scan API is a web service that allows users to query and retrieve information about security vulnerabilities. The API provides endpoints to filter and retrieve vulnerability data based on specific criteria, such as severity.
+This is my submission for the take-home test. 
+Based on the requirements provided by the people who gave me this challenge.
+The Security Scan API is a web service that allows users to query and retrieve information about security vulnerabilities, that are already stored in json files in the given repository.
+
+The API provides endpoints to filter and retrieve vulnerability data based on specific criteria, such as severity (the focus for this test). 
+
+## Table of Contents  
+- [Overview](#overview)  
+- [Usage Instructions](#usage-instructions)  
+  - [Managing the container](#managing-the-container)  
+  - [Sending requests to the service](#sending-requests-to-the-service)  
+- [Testing Instructions](#testing-instructions)  
+- [Features](#features)  
+- [Endpoints](#endpoints)  
+  - [1. POST /scan](#1-post-scan)  
+    - [Request Format](#request-format)  
+    - [Response Format](#response-format)  
+    - [Example Request Body](#example-request-body)  
+  - [2. POST /query](#2-post-query)  
+    - [Request Body Format](#request-body-format)  
+    - [Example Request](#example-request)  
+    - [Example Response](#example-response)  
+- [Assumptions Made](#assumptions-made)  
+
 
 ## Usage Instructions
 
@@ -44,14 +66,34 @@ curl -X POST \
 
 ## Testing Instructions
 
-To test, I have written test cases 
+Currently, the codebase has ~67% test coverage.
 
+To test, run the below command in the attached shell of the docker container.
+
+Navigate to ```\app``` in the container, or to the ```root``` folder if testing locally.
+
+```
+go test -coverprofile=coverage.out ./...
+```
+
+This will generate a ```coverage.out``` file which gives detailed information about the coverage.
+
+Alternatively, run this command to get coverage details on the shell (terminal)
+```
+go test -cover ./...
+```
+
+After running either of the commands, it should look something like this.
+
+![Screenshot](./screenshot.png)
 
 ## Features
 
 This service lets you:
 - Scan a GitHub repository for a set of requested files.
 - Query scanned payloads, filter based on some attributes.
+
+Stores the scanned payloads in a local sqlite3 database ```./scans.db```.
 
 ## Endpoints
 
@@ -193,3 +235,13 @@ If no severity filter is provided, then all the records scanned will be returned
 "Error Handling: Retry failed GitHub API calls (2 attempts)."
 I have implemented it as 1 attempt and 1 reattempt.
 ```
+
+3. Assumes that each source file read from the GitHub repo doesn't contain duplicate CVEs
+
+4. Parses the json payloads assuming the fields are same across any future json payloads scanned.
+
+
+Note: This README was not AI-generated.
+Authored by me, Aditi Killedar, February 2025.
+
+My first full project in Golang, so this will always be special to me.

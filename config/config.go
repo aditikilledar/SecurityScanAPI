@@ -3,20 +3,23 @@ package config
 import (
 	"database/sql"
 	"log"
-	"os"
 
 	_ "github.com/mattn/go-sqlite3"
 )
+
+var db *sql.DB
 
 type Config struct {
 	DatabasePath string
 	// Add other configuration fields as needed
 }
 
-func LoadConfig() Config {
+func LoadConfig(isTest string) Config {
 	// Example of loading configuration from environment variables
-	dbPath := os.Getenv("DATABASE_PATH")
-	if dbPath == "" {
+	var dbPath string
+	if isTest == "test" {
+		dbPath = "./testdb_scans.db"
+	} else {
 		dbPath = "./scans.db"
 	}
 
@@ -26,8 +29,26 @@ func LoadConfig() Config {
 	}
 }
 
-func (c *Config) InitDatabaseConfig() {
-	db, err := sql.Open("sqlite3", c.DatabasePath)
+func CloseDB() {
+	if db != nil {
+		err := db.Close()
+		if err != nil {
+			log.Printf("Error closing DB: %v", err)
+		}
+	}
+}
+
+func (c *Config) InitDatabaseConfig(isTest string) {
+	// var dbPath string
+	// if isTest == "test" {
+	// 	dbPath = "./testdb_scans.db"
+	// 	log.Printf("Using test db %s", dbPath)
+	// } else {
+	// 	dbPath = "./scans.db"
+	// 	log.Printf("Using production db %s", dbPath)
+	// }
+	var err error
+	db, err = sql.Open("sqlite3", c.DatabasePath)
 	if err != nil {
 		log.Fatalf("Failed to open database: %v", err)
 	}
@@ -54,4 +75,8 @@ func (c *Config) InitDatabaseConfig() {
 	if err != nil {
 		log.Fatalf("Failed to create table: %v", err)
 	}
+}
+
+func GetDB() *sql.DB {
+	return db
 }

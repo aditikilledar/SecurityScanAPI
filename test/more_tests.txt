@@ -1,0 +1,205 @@
+
+// ===============
+/*
+package test
+
+import (
+	"bytes"
+	"database/sql"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"securityscan/api"
+	"securityscan/config"
+	"testing"
+
+	_ "github.com/mattn/go-sqlite3"
+)
+
+func init() {
+	os.Setenv("DATABASE_PATH", "./testdb_scans.db")
+}
+
+var TEST_DB_PATH = "./testdb_scans.db"
+
+func TestMain(m *testing.M) {
+	// Set the test database path
+	os.Setenv("DATABASE_PATH", TEST_DB_PATH)
+	// Remove existing test database to start fresh
+	os.Remove(TEST_DB_PATH)
+
+	// Initialize the database for testing
+	cfg := config.LoadConfig("test")
+	cfg.InitDatabaseConfig("test")
+
+	// Run tests
+	code := m.Run()
+
+	// Cleanup
+	config.CloseDB()
+	os.Remove(TEST_DB_PATH)
+
+	os.Exit(code)
+}
+
+func TestScanHandler(t *testing.T) {
+	tests := []struct {
+		name           string
+		requestBody    api.ScanRequest
+		expectedStatus int
+	}{
+		{
+			name: "Valid request",
+			requestBody: api.ScanRequest{
+				Repo:      "https://github.com/velancio/vulnerability_scans",
+				FileNames: []string{"vulnscan15.json", "vulnscan16.json"},
+			},
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name: "Invalid repo URL",
+			requestBody: api.ScanRequest{
+				Repo:      "invalid-url",
+				FileNames: []string{"file.json"},
+			},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:           "Invalid request body",
+			requestBody:    api.ScanRequest{},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name: "Empty file names",
+			requestBody: api.ScanRequest{
+				Repo:      "https://github.com/velancio/vulnerability_scans",
+				FileNames: []string{},
+			},
+			expectedStatus: http.StatusBadRequest,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			reqBody, err := json.Marshal(tt.requestBody)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			req := httptest.NewRequest(http.MethodPost, "/scan", bytes.NewBuffer(reqBody))
+			w := httptest.NewRecorder()
+
+			api.ScanHandler(w, req)
+
+			if w.Code != tt.expectedStatus {
+				t.Errorf("expected status %d, got %d", tt.expectedStatus, w.Code)
+			}
+
+			if tt.expectedStatus == http.StatusOK {
+				var response api.ScanResponse
+				if err := json.NewDecoder(w.Body).Decode(&response); err != nil {
+					t.Fatalf("Failed to decode response: %v, body: %s", err, w.Body.String())
+				}
+
+				if response.Message == "" {
+					t.Error("expected non-empty message in response")
+				}
+
+				// Check the contents of the database
+				db, err := sql.Open("sqlite3", TEST_DB_PATH)
+				if err != nil {
+					t.Fatalf("Failed to open database %v", err)
+				}
+
+				var count int
+				err = db.QueryRow("SELECT COUNT(*) FROM payloads").Scan(&count)
+				if err != nil {
+					t.Fatalf("Failed to query database: %v", err)
+				}
+				if count != 16 {
+					t.Errorf("expected %d, got %d", 16, count)
+				}
+			}
+		})
+	}
+}
+
+func TestQueryHandler(t *testing.T) {
+	tests := []struct {
+		name           string
+		requestBody    api.QueryRequest
+		expectedStatus int
+	}{
+		{
+			name: "Valid query",
+			requestBody: api.QueryRequest{
+				Filters: map[string]string{
+					"Severity": "HIGH",
+				},
+			},
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "Invalid request body",
+			requestBody:    api.QueryRequest{},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name: "Empty filters",
+			requestBody: api.QueryRequest{
+				Filters: map[string]string{},
+			},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name: "Non-existent filter",
+			requestBody: api.QueryRequest{
+				Filters: map[string]string{
+					"NonExistentField": "value",
+				},
+			},
+			expectedStatus: http.StatusOK,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			reqBody, err := json.Marshal(tt.requestBody)
+			if err != nil {
+				t.Fatal(err)
+			}
+			req := httptest.NewRequest(http.MethodPost, "/query", bytes.NewBuffer(reqBody))
+			w := httptest.NewRecorder()
+
+			api.QueryHandler(w, req)
+
+			if w.Code != tt.expectedStatus {
+				t.Errorf("expected status %d, got %d", tt.expectedStatus, w.Code)
+			}
+
+			if tt.expectedStatus == http.StatusOK {
+				var response []api.Vulnerability
+				if err := json.NewDecoder(w.Body).Decode(&response); err != nil {
+					t.Fatalf("Failed to decode response: %v, body: %s", err, w.Body.String())
+				}
+
+				// Check the contents of the database
+				db, err := sql.Open("sqlite3", TEST_DB_PATH)
+				if err != nil {
+					t.Fatalf("Failed to open database %v", err)
+				}
+
+				var expectedResponseLen int
+				err = db.QueryRow("SELECT COUNT(*) FROM payloads WHERE severity=?", tt.requestBody.Filters["Severity"]).Scan(&expectedResponseLen)
+				if err != nil {
+					t.Fatalf("Failed to query database: %v", err)
+				}
+
+				if len(response) != expectedResponseLen {
+					t.Errorf("expected %d jsons in response, got %d", expectedResponseLen, len(response))
+				}
+			}
+		})
+	}
+}
+*/

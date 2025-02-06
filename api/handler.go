@@ -33,7 +33,6 @@ func ScanHandler(w http.ResponseWriter, r *http.Request) {
 
 		}
 	}
-
 	// make an HTTP GET request to the repo
 	res, err := http.Get(repoURL)
 
@@ -44,11 +43,16 @@ func ScanHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(fileNames) == 0 {
+		http.Error(w, "Empty files list", http.StatusBadRequest)
+		return
+	}
+
 	log.Printf("Processing scan request - Repo: %s, Files: %v",
 		ScanRequest.Repo,
 		ScanRequest.FileNames)
 
-	// TODO: Q2 scan files concurrently
+	// no limit on how many concurrent at a time
 	wg := sync.WaitGroup{}
 	for _, fileName := range fileNames {
 		wg.Add(1)
@@ -74,7 +78,8 @@ func ScanHandler(w http.ResponseWriter, r *http.Request) {
 
 func QueryHandler(w http.ResponseWriter, r *http.Request) {
 	var QueryReq QueryRequest
-	if err := json.NewDecoder(r.Body).Decode(&QueryReq); err != nil {
+	err := json.NewDecoder(r.Body).Decode(&QueryReq)
+	if (err != nil) || (len(QueryReq.Filters) == 0) {
 		log.Printf("Error parsing request, invalid request body: %v", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -90,7 +95,7 @@ func QueryHandler(w http.ResponseWriter, r *http.Request) {
 		vulnerabilities = []Vulnerability{}
 	}
 
-	log.Printf("Vulnerabilities found in handler: %v", vulnerabilities)
+	// log.Printf("Vulnerabilities found in handler: %v", vulnerabilities)
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(vulnerabilities); err != nil {
