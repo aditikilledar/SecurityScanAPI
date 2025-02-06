@@ -1,10 +1,8 @@
 # Progress Tracker
 
 TODO:
-- Check Edge cases
-- Tests for Core Logic (60%+) + Document how to run it
--   how to see if it's 60% ?
--   test if the correct result is returned for a sample file?
+All done! :)
+(for now)
 
 DONE:
 - Server startup
@@ -17,6 +15,10 @@ DONE:
 - Store EACH payload in the file one by one with metadata
 - \implement query 
     - Return all matched payloads (based on filter severity)
+- Check Edge cases
+- Tests for Core Logic (60%+) + Document how to run it
+-   how to see if it's 60% ? - done
+-   test if the correct result is returned for a sample file? - done
 
 CAN DO (Future)
 - store more metadata like vulnerabilities etc
