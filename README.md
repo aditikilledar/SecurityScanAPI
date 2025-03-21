@@ -2,8 +2,6 @@
 
 ## Overview
 
-This is my submission for the take-home challenge. 
-
 The Security Scan API is a web service that allows users to query and retrieve information about security vulnerabilities, that are already stored in JSON files in the given repository.
 
 The API provides endpoints to filter and retrieve vulnerability data based on specific criteria, such as severity (the focus of this test). 
@@ -243,5 +241,3 @@ I have implemented it as 1 attempt and 1 reattempt.
 
 Note: This README was not AI-generated.
 Authored by me, Aditi Killedar, February 2025.
-
-My first full project in Golang, so this will always be special to me.
